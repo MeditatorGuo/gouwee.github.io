@@ -177,7 +177,10 @@
     
 
         <p class="article-excerpt">
-            一、Dex分包方案的由来二、Dex分包的原理——ClassLoader
+            一、Dex分包方案的由来
+Dalvik限制当apk解压后里面是只有一个classes.dex文件，而这个dex文件里面就包含了项目的所有.classes文件。但是当一个app的功能越来越复杂，可能会出现两个问题：
+编译失败，因为一个DVM 中存储方法id 用的是short类型，导致dex中方法不能超过65536个
+apk在Android 2.3之前的机器无法安装，因为dex文件过大（用来执行dex
         </p>
     </div>
 </article>
