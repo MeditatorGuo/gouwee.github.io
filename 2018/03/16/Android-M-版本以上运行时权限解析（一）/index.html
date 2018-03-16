@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    
+    <title>Android M 版本以上运行时权限解析（一） | Hexo</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+        <meta name="keywords" content="" />
+    
+    <meta name="description" content="一、概述随着Android 6.0发布以及普及，作为开发者所要应对的主要是新版本SDK带来的一些变化；首先关注的就是权限机制的变化，Android 6.0以后增加了运行时权限（Runtime Permissions）。本篇文章的目的就是对运行时权限处理做一个简单的介绍，并实现在应用开发过程中对权限管理的封装。  GitHub地址： https://github.com/guowee/EasyPer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android M 版本以上运行时权限解析（一）">
+<meta property="og:url" content="http://yoursite.com/2018/03/16/Android-M-版本以上运行时权限解析（一）/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="一、概述随着Android 6.0发布以及普及，作为开发者所要应对的主要是新版本SDK带来的一些变化；首先关注的就是权限机制的变化，Android 6.0以后增加了运行时权限（Runtime Permissions）。本篇文章的目的就是对运行时权限处理做一个简单的介绍，并实现在应用开发过程中对权限管理的封装。  GitHub地址： https://github.com/guowee/EasyPer">
+<meta property="og:updated_time" content="2018-03-16T07:38:40.777Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android M 版本以上运行时权限解析（一）">
+<meta name="twitter:description" content="一、概述随着Android 6.0发布以及普及，作为开发者所要应对的主要是新版本SDK带来的一些变化；首先关注的就是权限机制的变化，Android 6.0以后增加了运行时权限（Runtime Permissions）。本篇文章的目的就是对运行时权限处理做一个简单的介绍，并实现在应用开发过程中对权限管理的封装。  GitHub地址： https://github.com/guowee/EasyPer">
+    
+
+    
+        <link rel="alternate" href="/" title="Hexo" type="application/atom+xml" />
+    
+
+    
+
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/libs/titillium-web/styles.css">
+    <link rel="stylesheet" href="/libs/source-code-pro/styles.css">
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/libs/jquery/2.0.3/jquery.min.js"></script>
+    
+    
+        <link rel="stylesheet" href="/libs/lightgallery/css/lightgallery.min.css">
+    
+    
+        <link rel="stylesheet" href="/libs/justified-gallery/justifiedGallery.min.css">
+    
+    
+    
+
+
+</head>
+
+<body>
+    <div id="wrap">
+        <header id="header">
+    <div id="header-outer" class="outer">
+        <div class="container">
+            <div class="container-inner">
+                <div id="header-title">
+                    <h1 class="logo-wrap">
+                        <a href="/" class="logo"></a>
+                    </h1>
+                    
+                </div>
+                <div id="header-inner" class="nav-container">
+                    <a id="main-nav-toggle" class="nav-icon fa fa-bars"></a>
+                    <div class="nav-container-inner">
+                        <ul id="main-nav">
+                            
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/">Home</a>
+                                </li>
+                            
+                                        
+                                    
+                                <li class="main-nav-list-item" >
+                                    <a class="main-nav-list-link" href="/about/index.html">About</a>
+                                </li>
+                            
+                        </ul>
+                        <nav id="sub-nav">
+                            <div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="Search" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="Type something..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: 'Posts',
+            PAGES: 'Pages',
+            CATEGORIES: 'Categories',
+            TAGS: 'Tags',
+            UNTITLED: '(Untitled)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+</div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+        <div class="container">
+            <div class="main-body container-inner">
+                <div class="main-body-inner">
+                    <section id="main">
+                        <div class="main-body-header">
+    <h1 class="header">
+    
+    uncategorized
+    </h1>
+</div>
+                        <div class="main-body-content">
+                            <article id="post-Android-M-版本以上运行时权限解析（一）" class="article article-single article-type-post" itemscope itemprop="blogPost">
+    <div class="article-inner">
+        
+            <header class="article-header">
+                
+    
+        <h1 class="article-title" itemprop="name">
+        Android M 版本以上运行时权限解析（一）
+        </h1>
+    
+
+            </header>
+        
+        
+            <div class="article-meta">
+                
+    <div class="article-date">
+        <a href="/2018/03/16/Android-M-版本以上运行时权限解析（一）/" class="article-date">
+            <time datetime="2018-03-16T07:37:57.000Z" itemprop="datePublished">2018-03-16</time>
+        </a>
+    </div>
+
+                
+            </div>
+        
+        
+        <div class="article-entry" itemprop="articleBody">
+            <h2 id="一、概述"><a href="#一、概述" class="headerlink" title="一、概述"></a>一、概述</h2><p>随着Android 6.0发布以及普及，作为开发者所要应对的主要是新版本SDK带来的一些变化；首先关注的就是权限机制的变化，Android 6.0以后增加了运行时权限（Runtime Permissions）。本篇文章的目的就是对运行时权限处理做一个简单的介绍，并实现在应用开发过程中对权限管理的封装。</p>
+<blockquote>
+<p>GitHub地址： <a href="https://github.com/guowee/EasyPermission" target="_blank" rel="noopener">https://github.com/guowee/EasyPermission</a></p>
+</blockquote>
+<h2 id="二、运行时权限"><a href="#二、运行时权限" class="headerlink" title="二、运行时权限"></a>二、运行时权限</h2><p>在Android 6.0以前，在安装应用的时候，会根据权限声明产生一个权限列表，用户只有在同意所有权限以后才能完成app的安装，这样就要忍受一些不必要的权限。而在Android 6.0之后，应用可以直接安装，使用时app需要权限时会给用户提示，可以选择同意或者拒绝（当然也可以在系统设置界面对每个app的权限进行查看，以及对单个权限进行授权或者解除授权）。</p>
+<p>新的权限机制更好的保护了用户的隐私，Google 将权限分为两类，一类是Normal Permissions,这类权限一般不涉及用户隐私，不需要用户进行授权，比如访问网络权限；另一类是Dangerous Permissions, 一般涉及到用户的隐私，需要用户进行授权，比如SD卡的读写权限。</p>
+<ul>
+<li><p>Normal Permissions</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ACCESS_NETWORK_STATE  </span><br><span class="line">ACCESS_NOTIFICATION_POLICY</span><br><span class="line">ACCESS_WIFI_STATE</span><br><span class="line">BLUETOOTH</span><br><span class="line">CHANGE_NETWORK_STATE</span><br><span class="line">CHANGE_WIFI_MULTICAST_STATE</span><br><span class="line">CHANGE_WIFI_STATE</span><br><span class="line">GET_PACKAGE_SIZE</span><br><span class="line">INTERNET</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Dangerous Permissions</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">group:android.permission-group.CONTACTS</span><br><span class="line">  	permission:android.permission.WRITE_CONTACTS</span><br><span class="line">  	permission:android.permission.GET_ACCOUNTS</span><br><span class="line">  	permission:android.permission.READ_CONTACTS</span><br><span class="line">group:android.permission-group.PHONE</span><br><span class="line">  	permission:android.permission.READ_CALL_LOG</span><br><span class="line">  	permission:android.permission.READ_PHONE_STATE</span><br><span class="line">  	permission:android.permission.CALL_PHONE</span><br><span class="line">  	permission:android.permission.WRITE_CALL_LOG</span><br><span class="line">  	permission:android.permission.USE_SIP</span><br><span class="line">  	permission:android.permission.PROCESS_OUTGOING_CALLS</span><br><span class="line">  	permission:com.android.voicemail.permission.ADD_VOICEMAIL</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>Dangerous Permissions 中权限都是分组的，那么分组对权限机制有什么影响呢？<br>如果app运行在Android 6.0以上版本的机器上，如果你申请某个危险的权限，假设你的app早已被用户授权了同一组的某个危险权限，那么系统会立即授权，而不需要用户去点击授权。比如你的app对READ_CONTACTS已经授权了，当你的app申请WRITE_CONTACTS时，系统会直接授权通过。</p>
+<h2 id="API的使用"><a href="#API的使用" class="headerlink" title="API的使用"></a>API的使用</h2><ol>
+<li>在AndroidManifest文件中添加需要的权限<br>这个步骤和之前的开发并没有什么变化</li>
+<li>检查权限<br>以申请打电话的权限为例：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// ContextCompat.checkSelfPermission()</span><br><span class="line">// 方法返回值为PackageManager.PERMISSION_DENIED或者PackageManager.PERMISSION_GRANTED</span><br><span class="line">// 当返回GRANTED表示有该权限，DENIED表示没有该权限</span><br><span class="line">if(ContextCompat.checkSelfPermission(this,Manifest.permission.CALL_PHONE)!= PackageManager.PERMISSION_GRANTED)&#123;</span><br><span class="line">		//　没有该权限　申请打电话权限</span><br><span class="line">		//  三个参数 第一个参数是 Context , 第二个参数是用户需要申请的权限字符串数组，第三个参数是请求码 主要用来处理用户选择的返回结果</span><br><span class="line">		</span><br><span class="line">&#125;else &#123;</span><br><span class="line">		...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>这里涉及到一个API方法，<code>ContextCompat.checkSelfPermission</code> 主要用于检测某个权限是否已经被授权，方法返回值为<code>PackageManager.PERMISSION_DENIED</code> 或者 <code>PackageManager.PERMISSION_GRANNTED</code></p>
+<ol>
+<li>申请权限<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ActivityCompat.requestPermissions(this,new String[]&#123;&quot;Manifest.permission.CALL_PHONE&quot;&#125;,CALL_PHONE_REQUEST_CODE);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>这个方法是异步的，第一个参数是Context,第二个参数是需要申请的权限的字符串数组，第三个参数是requestCode,主要用于回调的时候检查。从第二个参数来看，是支持一次性申请多个权限的，系统会弹出对话框逐一询问用户是否授权。</p>
+<ol>
+<li>处理回调<br>如果用户同意或是拒绝那么会回调<code>onRequestPermissionsResult()</code></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) &#123;</span><br><span class="line">        if(requestCode == CALL_PHONE_REQUEST_CODE)&#123;</span><br><span class="line">            if (grantResults !=null&amp;&amp;grantResults[0] == PackageManager.PERMISSION_GRANTED) &#123;</span><br><span class="line">                // permission was granted, yay! Do the</span><br><span class="line">                // contacts-related task you need to do.  </span><br><span class="line">                ...</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                // permission denied, boo! Disable the</span><br><span class="line">                // functionality that depends on this permission.  </span><br><span class="line">                </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于权限的申请结果，首先验证requestCode定位到你的申请，然后验证grantResults对应于申请的结果，这里的数组对应于申请时的第二个权限字符串数组。如果你同时申请两个权限，那么grantResults的length就为2，分别记录你两个权限的申请结果。如果申请成功，就可以做你的事情了。</p>
+<p>不过还有一个API方法值得注意,就是<code>ActivityCompat.shouldShowRequestPermissionRationale</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// Should we show an explanation?</span><br><span class="line">if (ActivityCompat.shouldShowRequestPermissionRationale(thisActivity,</span><br><span class="line">        Manifest.permission.READ_CONTACTS)) </span><br><span class="line">    // Show an expanation to the user *asynchronously* -- don&apos;t block</span><br><span class="line">    // this thread waiting for the user&apos;s response! After the user</span><br><span class="line">    // sees the explanation, try again to request the permission.</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个API主要用于给用户一个申请权限的解释，该方法只有在用户在上一次已经拒绝过你的这个权限申请。也就是说，用户已经拒绝一次了，又弹个授权框，需要给用户一个解释，为什么要授权，则使用该方法。</p>
+<h2 id="简单的例子"><a href="#简单的例子" class="headerlink" title="简单的例子"></a>简单的例子</h2><p>这里写一个简单的例子，针对于运行时权限。看看直接拨打电话在Android 6.x的设备上权限需要如何处理。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">public class MainActivity extends AppCompatActivity &#123;</span><br><span class="line">    // 打电话权限申请的请求码</span><br><span class="line">    private static final int REQUEST_PERMISSION_CALL_CODE = 0x0011;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">        super.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void phoneClick(View view)&#123;</span><br><span class="line">        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)</span><br><span class="line">                != PackageManager.PERMISSION_GRANTED)&#123;</span><br><span class="line">            Toast.makeText(this, &quot;申请权限&quot;, Toast.LENGTH_SHORT).show();</span><br><span class="line">            ActivityCompat.requestPermissions(this,</span><br><span class="line">                    new String[]&#123;&quot;Manifest.permission.CALL_PHONE&quot;&#125;, REQUEST_PERMISSION_CALL_CODE);</span><br><span class="line">        &#125;else &#123;</span><br><span class="line">            callPhone();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">    * 拨打电话</span><br><span class="line">    **/</span><br><span class="line">    private void callPhone() &#123;</span><br><span class="line">        Intent intent = new Intent(Intent.ACTION_CALL);</span><br><span class="line">        Uri data = Uri.parse(&quot;tel:13111111111&quot;);</span><br><span class="line">        intent.setData(data);</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) &#123;</span><br><span class="line">        super.onRequestPermissionsResult(requestCode, permissions, grantResults);</span><br><span class="line">        if(requestCode == REQUEST_PERMISSION_CALL_CODE)&#123;</span><br><span class="line">            if (grantResults !=null&amp;&amp;grantResults[0] == PackageManager.PERMISSION_GRANTED) &#123;</span><br><span class="line">                // Permission Granted</span><br><span class="line">                callPhone();</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                // Permission Denied</span><br><span class="line">                Toast.makeText(this,&quot;权限被拒绝了&quot;,Toast.LENGTH_SHORT).show();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h2><p>虽然权限处理并不复杂，但是需要编写很多重复的代码，所以目前也有很多库对用法进行了封装（可以在github首页搜索）。本节将要讲解的是使用注解和反射的方式封装，封装的代码很简单，接下来看看如何实现。<br><strong>(1) 权限申请</strong><br>从上面的例子中可以看到，如果申请其他权限，申请的逻辑是类似的，区别就在于参数不同，我们需要三个参数： <code>Activity\Fragment</code>，<code>permissions数组</code>，<code>requestCode申请码</code>， 也就是说只需要写个方法，接收这几个参数即可，然后逻辑就是统一的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">@TargetApi(Build.VERSION_CODES.M)</span><br><span class="line">   private void requestPermissions(Object obj, int requestCode, String[] permissions) &#123;</span><br><span class="line">       if (!PermissionUtil.isOverMarshmallow()) &#123;</span><br><span class="line">           //如果运行在Android 6.0以下的版本上，直接执行方法</span><br><span class="line">           executeSuccess(obj, requestCode);</span><br><span class="line">           return;</span><br><span class="line">       &#125;</span><br><span class="line">       //寻找是否有未被允许的权限</span><br><span class="line">       List&lt;String&gt; deniedPermissions = PermissionUtil.findDeniedPermissions(getActivity(obj), permissions);</span><br><span class="line">       if (deniedPermissions.size() &gt; 0) &#123;</span><br><span class="line">           //存在未允许的权限，需要申请权限</span><br><span class="line">           if (obj instanceof Activity) &#123;</span><br><span class="line">               ((Activity) obj).requestPermissions(deniedPermissions.toArray(new String[deniedPermissions.size()]), requestCode);</span><br><span class="line">           &#125; else if (obj instanceof Fragment) &#123;</span><br><span class="line">               ((Fragment) obj).requestPermissions(deniedPermissions.toArray(new String[deniedPermissions.size()]), requestCode);</span><br><span class="line">           &#125; else &#123;</span><br><span class="line">               throw new IllegalArgumentException(object.getClass().getName() + &quot; is not supported&quot;);</span><br><span class="line">           &#125;</span><br><span class="line">       &#125; else &#123;</span><br><span class="line">           // 权限都已经被允许，直接执行方法</span><br><span class="line">           executeSuccess(obj, requestCode);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p><code>PermissionUtil.findDeniedPermissions</code> 就是检查 没有授权的权限.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@TargetApi(Build.VERSION_CODES.M)</span><br><span class="line">public static List&lt;String&gt; findDeniedPermissions(Activity activity, String... permissions) &#123;</span><br><span class="line">    List&lt;String&gt; deniedPermissions = new ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    for (String permission : permissions) &#123;</span><br><span class="line">        if (activity.checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) &#123;</span><br><span class="line">            deniedPermissions.add(permission);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return deniedPermissions;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么上述的逻辑就很清晰了，需要的3种参数传入，先去除已经申请的权限，然后开始申请权限。</p>
+<p><strong>(2) 回调处理</strong></p>
+<p>回调主要做的事情：</p>
+<ol>
+<li>了解是否授权</li>
+<li>根据授权情况进行回调</li>
+</ol>
+<p>对于第二条，会涉及到两个分支，每个分支执行不同的方法，这里利用注解去确定需要执行的方法，存在两个注解：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">@PermissionSuccess(requestCode = 0x01)</span><br><span class="line">@PermissionFail(requestCode = 0x01)</span><br></pre></td></tr></table></figure></p>
+<p>利用反射根据授权情况+requestCode即可找到注解标注的方法，然后直接执行即可。</p>
+<p>大致代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public static void onRequestPermissionsResult(Object obj, int requestCode, String[] permissions, int[] grantResults) &#123;</span><br><span class="line">       List&lt;String&gt; deniedPermissions = new ArrayList&lt;&gt;();</span><br><span class="line">       for (int i = 0; i &lt; grantResults.length; i++) &#123;</span><br><span class="line">           if (grantResults[i] != PackageManager.PERMISSION_GRANTED) &#123;</span><br><span class="line">               deniedPermissions.add(permissions[i]);</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       if (deniedPermissions.size() &gt; 0) &#123;</span><br><span class="line">           executeFail(obj, requestCode);</span><br><span class="line">       &#125; else &#123;</span><br><span class="line">           executeSuccess(obj, requestCode);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
+<p>首先根据grantResults进行判断成功还是失败，对于成功则执行成功的回调：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private static void executeSuccess(Object obj, int requestCode) &#123;</span><br><span class="line">    Method succMethod = PermissionUtil.findMethodWithRequestCode(obj.getClass(), PermissionSuccess.class, requestCode);</span><br><span class="line">    executeMethod(obj, succMethod);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>PermissionUtil.findMethodWithRequestCode</code> 根据注解和requestCode找到方法，然后反射执行即可,代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static &lt;T extends Annotation&gt; Method findMethodWithRequestCode(Class clazz, Class&lt;T&gt; annotation, int requestCode) &#123;</span><br><span class="line">        for (Method method : clazz.getDeclaredMethods()) &#123;</span><br><span class="line">            if (method.isAnnotationPresent(annotation)) &#123;</span><br><span class="line">                if (isEqualRequestCodeFromAnnotation(method, annotation, requestCode)) &#123;</span><br><span class="line">                    return method;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于失败则执行失败的回调，代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private static void executeFail(Object obj, int requestCode) &#123;</span><br><span class="line">       Method failMethod = PermissionUtil.findMethodWithRequestCode(obj.getClass(), PermissionFail.class, requestCode);</span><br><span class="line">       executeMethod(obj, failMethod);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到此，对于权限处理的封装基本介绍完了。</p>
+
+        </div>
+        <footer class="article-footer">
+            
+
+
+
+    <a data-url="http://yoursite.com/2018/03/16/Android-M-版本以上运行时权限解析（一）/" data-id="cjetmuakm0000z0asarh401rw" class="article-share-link"><i class="fa fa-share"></i>Share</a>
+<script>
+    (function ($) {
+        $('body').on('click', function() {
+            $('.article-share-box.on').removeClass('on');
+        }).on('click', '.article-share-link', function(e) {
+            e.stopPropagation();
+
+            var $this = $(this),
+                url = $this.attr('data-url'),
+                encodedUrl = encodeURIComponent(url),
+                id = 'article-share-box-' + $this.attr('data-id'),
+                offset = $this.offset(),
+                box;
+
+            if ($('#' + id).length) {
+                box = $('#' + id);
+
+                if (box.hasClass('on')){
+                    box.removeClass('on');
+                    return;
+                }
+            } else {
+                var html = [
+                    '<div id="' + id + '" class="article-share-box">',
+                        '<input class="article-share-input" value="' + url + '">',
+                        '<div class="article-share-links">',
+                            '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+                            '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+                            '<a href="http://pinterest.com/pin/create/button/?url=' + encodedUrl + '" class="article-share-pinterest" target="_blank" title="Pinterest"></a>',
+                            '<a href="https://plus.google.com/share?url=' + encodedUrl + '" class="article-share-google" target="_blank" title="Google+"></a>',
+                        '</div>',
+                    '</div>'
+                ].join('');
+
+              box = $(html);
+
+              $('body').append(box);
+            }
+
+            $('.article-share-box.on').hide();
+
+            box.css({
+                top: offset.top + 25,
+                left: offset.left
+            }).addClass('on');
+
+        }).on('click', '.article-share-box', function (e) {
+            e.stopPropagation();
+        }).on('click', '.article-share-box-input', function () {
+            $(this).select();
+        }).on('click', '.article-share-box-link', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            window.open(this.href, 'article-share-box-window-' + Date.now(), 'width=500,height=450');
+        });
+    })(jQuery);
+</script>
+
+        </footer>
+    </div>
+</article>
+
+    <section id="comments">
+    
+        
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+
+    
+    </section>
+
+
+                        </div>
+                    </section>
+                    <aside id="sidebar">
+    <a class="sidebar-toggle" title="Expand Sidebar"><i class="toggle icon"></i></a>
+    <div class="sidebar-top">
+        <p>follow:</p>
+        <ul class="social-links">
+            
+                
+                <li>
+                    <a class="social-tooltip" title="twitter" href="/" target="_blank">
+                        <i class="icon fa fa-twitter"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="facebook" href="/" target="_blank">
+                        <i class="icon fa fa-facebook"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="google-plus" href="/" target="_blank">
+                        <i class="icon fa fa-google-plus"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="github" href="https://github.com/ppoffice/hexo-theme-hueman" target="_blank">
+                        <i class="icon fa fa-github"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="weibo" href="/" target="_blank">
+                        <i class="icon fa fa-weibo"></i>
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a class="social-tooltip" title="rss" href="/" target="_blank">
+                        <i class="icon fa fa-rss"></i>
+                    </a>
+                </li>
+                
+            
+        </ul>
+    </div>
+    
+        
+<nav id="article-nav">
+    
+    
+        <a href="/2018/03/07/windows下MongoDB的安装与配置/" id="article-nav-older" class="article-nav-link-wrap">
+        <strong class="article-nav-caption">older</strong>
+        <p class="article-nav-title">windows 下MongoDB的安装与配置</p>
+        <i class="icon fa fa-chevron-left" id="icon-chevron-left"></i>
+        </a>
+    
+</nav>
+
+    
+    <div class="widgets-container">
+        
+            
+                
+    <div class="widget-wrap">
+        <h3 class="widget-title">recents</h3>
+        <div class="widget">
+            <ul id="recent-post" class="">
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/16/Android-M-版本以上运行时权限解析（一）/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"></p>
+                            <p class="item-title"><a href="/2018/03/16/Android-M-版本以上运行时权限解析（一）/" class="title">Android M 版本以上运行时权限解析（一）</a></p>
+                            <p class="item-date"><time datetime="2018-03-16T07:37:57.000Z" itemprop="datePublished">2018-03-16</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/07/windows下MongoDB的安装与配置/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"></p>
+                            <p class="item-title"><a href="/2018/03/07/windows下MongoDB的安装与配置/" class="title">windows 下MongoDB的安装与配置</a></p>
+                            <p class="item-date"><time datetime="2018-03-07T11:14:57.000Z" itemprop="datePublished">2018-03-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/03/07/Des-算法的CBC模式加解密/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"></p>
+                            <p class="item-title"><a href="/2018/03/07/Des-算法的CBC模式加解密/" class="title">Des 算法的CBC模式加解密</a></p>
+                            <p class="item-date"><time datetime="2018-03-07T07:27:50.000Z" itemprop="datePublished">2018-03-07</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/02/23/android-hot-fix/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"></p>
+                            <p class="item-title"><a href="/2018/02/23/android-hot-fix/" class="title">Android热补丁动态修复技术</a></p>
+                            <p class="item-date"><time datetime="2018-02-23T09:57:08.000Z" itemprop="datePublished">2018-02-23</time></p>
+                        </div>
+                    </li>
+                
+                    <li>
+                        
+                        <div class="item-thumbnail">
+                            <a href="/2018/02/23/hello-world/" class="thumbnail">
+    
+    
+        <span class="thumbnail-image thumbnail-none"></span>
+    
+    
+</a>
+
+                        </div>
+                        
+                        <div class="item-inner">
+                            <p class="item-category"></p>
+                            <p class="item-title"><a href="/2018/02/23/hello-world/" class="title">Hello World</a></p>
+                            <p class="item-date"><time datetime="2018-02-23T09:07:55.214Z" itemprop="datePublished">2018-02-23</time></p>
+                        </div>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+            
+                
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">archives</h3>
+        <div class="widget">
+            <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a><span class="archive-list-count">2</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">tags</h3>
+        <div class="widget">
+            <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/">Android</a><span class="tag-list-count">1</span></li></ul>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-float">
+        <h3 class="widget-title">tag cloud</h3>
+        <div class="widget tagcloud">
+            <a href="/tags/Android/" style="font-size: 10px;">Android</a>
+        </div>
+    </div>
+
+
+            
+                
+    <div class="widget-wrap widget-list">
+        <h3 class="widget-title">links</h3>
+        <div class="widget">
+            <ul>
+                
+                    <li>
+                        <a href="http://hexo.io">Hexo</a>
+                    </li>
+                
+            </ul>
+        </div>
+    </div>
+
+
+            
+        
+    </div>
+</aside>
+                </div>
+            </div>
+        </div>
+        <footer id="footer">
+    <div class="container">
+        <div class="container-inner">
+            <a id="back-to-top" href="javascript:;"><i class="icon fa fa-angle-up"></i></a>
+            <div class="credit">
+                <h1 class="logo-wrap">
+                    <a href="/" class="logo"></a>
+                </h1>
+                <p>&copy; 2018 John Doe</p>
+                <p>Powered by <a href="//hexo.io/" target="_blank">Hexo</a>. Theme by <a href="//github.com/ppoffice" target="_blank">PPOffice</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+        
+    
+    <script>
+    var disqus_shortname = 'hexo-theme-hueman';
+    
+    
+    var disqus_url = 'http://yoursite.com/2018/03/16/Android-M-版本以上运行时权限解析（一）/';
+    
+    (function() {
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    </script>
+
+
+
+
+    
+        <script src="/libs/lightgallery/js/lightgallery.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-thumbnail.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-pager.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-autoplay.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-fullscreen.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-zoom.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-hash.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-share.min.js"></script>
+        <script src="/libs/lightgallery/js/lg-video.min.js"></script>
+    
+    
+        <script src="/libs/justified-gallery/jquery.justifiedGallery.min.js"></script>
+    
+    
+
+
+
+<!-- Custom Scripts -->
+<script src="/js/main.js"></script>
+
+    </div>
+</body>
+</html>
